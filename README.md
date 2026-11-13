@@ -36,7 +36,7 @@ No measurable difference (within noise). It is kept in the final pipeline becaus
 
 ## Data
 
-[Arabic Sentiment Twitter Corpus]([https://www.kaggle.com/](https://www.kaggle.com/datasets/mksaad/arabic-sentiment-twitter-corpus)) (original source: Kaggle, `mksaad`), loaded from the Hugging Face mirror `asas-ai/Arabic_Sentiment_Twitter_Corpus`.
+[Arabic Sentiment Twitter Corpus](https://www.kaggle.com/datasets/mksaad/arabic-sentiment-twitter-corpus) (original source: Kaggle, `mksaad`), loaded from the Hugging Face mirror `asas-ai/Arabic_Sentiment_Twitter_Corpus`.
 The mirror's dataset card lists the CDLA-Sharing-1.0 license. <!-- TODO: confirm on the original Kaggle page and fix the Kaggle link above -->
 The data is **not** redistributed in this repo; the notebook downloads it.
 
