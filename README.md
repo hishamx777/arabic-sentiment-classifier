@@ -6,9 +6,8 @@ The project covers the full pipeline: **Data → Model → Evaluation → Deploy
 
 | | Link |
 |---|---|
-| Live demo (baseline, Streamlit) | TODO: Streamlit URL |
-| Fine-tuned model | https://huggingface.co/hishamx777/arabic-sentiment-marbert |
-| Demo video (fine-tuned model) | TODO: video URL |
+| Live demo (baseline, Streamlit) | https://arc-hisham.streamlit.app/ |
+| Fine-tuned model (Hugging Face) | https://huggingface.co/hishamx777/arabic-sentiment-marbert |
 | Notebook | [`arabic_sentiment.ipynb`](arabic_sentiment.ipynb) |
 
 ## Results
@@ -24,9 +23,11 @@ The 6-point gain is larger than the sampling noise of a test set this size (roug
 Both models miss positive tweets far more often than negative ones (positive recall 0.59), so most errors are positive tweets predicted negative.
 
 ### Run-to-run variation
+
 I trained MARBERTv2 twice with the same seed (GPU/fp16 training is not fully deterministic). Macro F1 was almost identical (0.729 and 0.730), but the class balance of the errors shifted noticeably (positive recall 0.68 in the first run, 0.59 in the second). The published model is the second run. Treat a single run's per-class numbers with caution.
 
 ### Text normalization ablation
+
 | Cleaning | Baseline Macro F1 | MARBERTv2 Macro F1 |
 |---|---|---|
 | Emoji removal only | 0.668 | 0.729 |
@@ -34,10 +35,17 @@ I trained MARBERTv2 twice with the same seed (GPU/fp16 training is not fully det
 
 No measurable difference (within noise). It is kept in the final pipeline because it is harmless and turns decorative Arabic presentation-form text into standard letters.
 
+## Fine-tuned model examples
+
+Predictions from the fine-tuned MARBERTv2, run through a temporary Gradio demo in the notebook.
+
+![Correct prediction](images/demo1.png)
+![Wrong prediction](images/demo2.png)
+
 ## Data
 
-[Arabic Sentiment Twitter Corpus](https://www.kaggle.com/datasets/mksaad/arabic-sentiment-twitter-corpus) (original source: Kaggle, `mksaad`), loaded from the Hugging Face mirror `asas-ai/Arabic_Sentiment_Twitter_Corpus`.
-The mirror's dataset card lists the CDLA-Sharing-1.0 license. <!-- TODO: confirm on the original Kaggle page and fix the Kaggle link above -->
+Arabic Sentiment Twitter Corpus (original source: Kaggle, `mksaad`), loaded from the Hugging Face mirror `asas-ai/Arabic_Sentiment_Twitter_Corpus`.
+The mirror's dataset card lists the CDLA-Sharing-1.0 license.
 The data is **not** redistributed in this repo; the notebook downloads it.
 
 Raw size: 45,275 train / 11,520 test. After cleaning: 28,768 train / 6,225 test.
@@ -45,10 +53,11 @@ Raw size: 45,275 train / 11,520 test. After cleaning: 28,768 train / 6,225 test.
 ### Cleaning decisions (and why)
 
 1. **Emoji removal.** The labels come from distant supervision: a tweet was labeled by the emojis in it, and ~84% of tweets contain emojis. Keeping them lets a model "read" the label from the emoji instead of learning language, which inflates scores.
-2. **Duplicates removed after emoji removal.** About a third of the train set were exact duplicates. Doing this *after* removing emojis also catches tweets that differed only by emoji.
-3. **Conflicting labels dropped.** Texts that appear with both labels once emojis are gone have no linguistic signal to learn from.
-4. **Train/test overlap removed**, so no tweet appears in both splits.
-5. A validation set (10% of train) is used for choosing the best epoch; the test set is touched only for the final numbers.
+2. **Unicode NFKC normalization and removal of diacritics/tatweel**, so decorative text is mapped to standard Arabic letters (see the ablation above).
+3. **Duplicates removed after emoji removal.** About a third of the train set were exact duplicates. Doing this *after* removing emojis also catches tweets that differed only by emoji.
+4. **Conflicting labels dropped.** Texts that appear with both labels once emojis are gone have no linguistic signal to learn from.
+5. **Train/test overlap removed**, so no tweet appears in both splits.
+6. A validation set (10% of train) is used for choosing the best epoch; the test set is touched only for the final numbers.
 
 ## Error analysis
 
@@ -60,13 +69,12 @@ Overall 1,627 of 6,225 test tweets are misclassified. In a random sample of 25 e
 - **Poetic or religious text** (supplications, quotes), which the model tends to read as sad.
 - **Decorative text** using unusual Unicode characters.
 
-<!-- TODO: read the 25 errors yourself, count each category, and put the counts here -->
-
 ## Limitations
 
 - Labels are emoji-derived, so the model partly learns tweet style rather than true sentiment; neutral tweets are forced into pos/neg.
 - The corpus leans toward Gulf dialect. Performance on Egyptian Arabic has not been measured on a labeled external set.
-- The live demo runs the baseline only: the free hosting tier has too little memory for MARBERTv2 (~650 MB of weights). The fine-tuned model is on the Hub and shown in the video.
+- Threats and other clearly negative sentences can be labeled positive (see the examples above). Do not use this model for moderation or safety decisions.
+- The live demo runs the baseline only: the free hosting tier has too little memory for MARBERTv2 (~650 MB of weights). The fine-tuned model is on the Hugging Face Hub (linked above) and example predictions are shown above.
 
 ## Run it
 
@@ -85,4 +93,11 @@ arabic_sentiment.ipynb   data, baseline, fine-tuning, evaluation
 app.py                   Streamlit demo (baseline)
 baseline.joblib          trained TF-IDF + LogReg
 requirements.txt         pinned to the scikit-learn version used for training
+images/                  example predictions of the fine-tuned model
+model_card.md            model card published on the Hugging Face Hub
 ```
+
+## Licenses
+
+Base model: UBC-NLP/MARBERTv2 (see its model page for license terms).
+Data: see the dataset page linked above.
